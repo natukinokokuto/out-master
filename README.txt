@@ -1,3 +1,6 @@
-OUT MASTER v10.10.5 pc-click-fix版
-修正点: PCで盤面クリックが反応しない場合のfallbackを追加。
-更新確認: ?ver=10105
+OUT MASTER v10.13 bgm-volume版
+追加:
+- BGM導入: assets/bgm.mp3
+- SETTINGSにBGM ON/OFF、BGM VOLUME、SE VOLUME追加
+- BGMはユーザー操作後に再生開始
+更新確認: ?ver=1013

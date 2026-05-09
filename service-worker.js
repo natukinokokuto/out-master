@@ -1,11 +1,12 @@
-const CACHE_NAME = "out-master-v10-12-3-custom-td";
+const CACHE_NAME = "out-master-v10-13-1-fade-loop";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
-  "./assets/menu-bg.jpg"
+  "./assets/menu-bg.jpg",
+  "./assets/bgm.mp3"
 ];
 
 self.addEventListener("install", event => {
