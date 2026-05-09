@@ -345,13 +345,51 @@ svg{
       <span class="menuTitle">RANKING</span>
       <span class="menuSub">端末内のベスト記録</span>
     </button>
-    <button class="menuBtn" onclick="toggleSound()">
+    <button class="menuBtn" onclick="openSettings()">
       <span class="menuIcon">⚙</span>
-      <span class="menuTitle" id="soundMenuText">SOUND ON</span>
-      <span class="menuSub">ミス音 ON / OFF</span>
+      <span class="menuTitle">SETTINGS</span>
+      <span class="menuSub">入力モード・サウンド設定</span>
     </button>
   </div>
   <div class="versionTiny">v10.8.3</div>
+</div>
+
+
+<div id="settingsScreen" class="screen hide">
+  <div class="menuOverlay"></div>
+  <div class="menuPanel">
+    <div class="logo" style="margin-bottom:12px">
+      <div class="master" style="font-size:48px">SETTINGS</div>
+    </div>
+
+    <div class="menuBtn" style="padding:18px">
+      <div class="menuTitle" style="font-size:20px">INPUT MODE</div>
+      <div class="menuSub" style="margin-top:12px">CLASSIC / BUTTON / FLICK</div>
+
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button id="classicModeBtn" onclick="setInputMode('CLASSIC')" style="flex:1;padding:12px;border-radius:12px;border:0;font-weight:900">CLASSIC</button>
+        <button id="buttonModeBtn" onclick="setInputMode('BUTTON')" style="flex:1;padding:12px;border-radius:12px;border:0;font-weight:900">BUTTON</button>
+        <button id="flickModeBtn" onclick="setInputMode('FLICK')" style="flex:1;padding:12px;border-radius:12px;border:0;font-weight:900">FLICK</button>
+      </div>
+
+      <div id="modeExplain" style="margin-top:14px;font-size:12px;color:#d8c3aa;line-height:1.6">
+      </div>
+    </div>
+
+    <div class="menuBtn" style="padding:18px">
+      <div class="menuTitle" style="font-size:20px">SOUND</div>
+
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button onclick="toggleSound()" id="settingsSoundBtn" style="flex:1;padding:12px;border-radius:12px;border:0;font-weight:900">
+          SOUND ON
+        </button>
+      </div>
+    </div>
+
+    <button class="menuBtn primary" onclick="closeSettings()">
+      <span class="menuTitle">BACK</span>
+    </button>
+  </div>
 </div>
 
 <div id="boardScreen" class="screen boardScreen hide">
@@ -373,7 +411,13 @@ svg{
     </div>
     <div class="card boardWrap">
       <svg id="board" viewBox="-120 -120 240 240" aria-label="dart board"></svg>
-      <button class="noout" onclick="answerNoOut()">上がれない</button>
+      <div style="display:flex;align-items:center;gap:12px">
+<button id="tripleBtn" class="noout" style="width:66px;height:66px;background:radial-gradient(circle at 30% 30%, #8b5cf6, #4c1d95 70%);border-color:#2e1065;font-size:20px" onpointerdown="modePress('T')" onpointerup="modeRelease()" ontouchend="modeRelease()">T</button>
+
+<button class="noout" onclick="answerNoOut()">上がれない</button>
+
+<button id="doubleBtn" class="noout" style="width:66px;height:66px;background:radial-gradient(circle at 30% 30%, #22c55e, #166534 70%);border-color:#14532d;font-size:20px" onpointerdown="modePress('D')" onpointerup="modeRelease()" ontouchend="modeRelease()">D</button>
+</div>
     </div>
   </div>
 </div>
@@ -413,9 +457,18 @@ let store = loadStore();
 let playing=false, practiceMode=false, current=0, displayRem=0, round=0, miss=0, startTime=0, timerId=null, answerRoutes=[];
 let bonusTime = 0;
 let selectedThrows=[];
+let heldMode=null;
+
+function modePress(mode){
+  if(store.inputMode!=="BUTTON") return;
+  heldMode=mode;
+}
+function modeRelease(){
+  heldMode=null;
+}
 
 function loadStore(){
-  try{return Object.assign({sound:true,best:null,ranking:[]}, JSON.parse(localStorage.getItem(STORE_KEY)||"{}"))}
+  try{return Object.assign({sound:true,inputMode:"CLASSIC",best:null,ranking:[]}, JSON.parse(localStorage.getItem(STORE_KEY)||"{}"))}
   catch(e){return {sound:true,best:null,ranking:[]}}
 }
 function saveStore(){localStorage.setItem(STORE_KEY, JSON.stringify(store))}
@@ -425,10 +478,74 @@ function transition(from,to){
 }
 document.getElementById("titleScreen").addEventListener("click",()=>transition("titleScreen","menuScreen"));
 
+
+function openSettings(){
+  document.getElementById("menuScreen").classList.add("hide");
+  setTimeout(()=>{
+    document.getElementById("settingsScreen").classList.remove("hide");
+    refreshModeUI();
+  },220);
+}
+
+function closeSettings(){
+  document.getElementById("settingsScreen").classList.add("hide");
+  setTimeout(()=>{
+    document.getElementById("menuScreen").classList.remove("hide");
+  },220);
+}
+
+function setInputMode(mode){
+  store.inputMode=mode;
+  saveStore();
+  refreshModeUI();
+}
+
+function refreshModeUI(){
+  const modes=["CLASSIC","BUTTON","FLICK"];
+
+  modes.forEach(m=>{
+    const id = m.toLowerCase()+"ModeBtn";
+    const btn=document.getElementById(id);
+    if(!btn)return;
+
+    if(store.inputMode===m){
+      btn.style.background="#ffb020";
+      btn.style.color="#1a1200";
+    }else{
+      btn.style.background="#2d2d36";
+      btn.style.color="#fff";
+    }
+  });
+
+  const explain=document.getElementById("modeExplain");
+
+  if(store.inputMode==="CLASSIC"){
+    explain.innerHTML=
+    "リアル盤面入力<br>T/Dリングを直接タップ";
+  }
+
+  if(store.inputMode==="BUTTON"){
+    explain.innerHTML=
+    "T/Dボタンを押しながら数字入力<br>普通タップは全てシングル";
+  }
+
+  if(store.inputMode==="FLICK"){
+    explain.innerHTML=
+    "タップ=S<br>上フリック=T<br>下フリック=D";
+  }
+}
+
 function toggleSound(){
   store.sound=!store.sound; saveStore(); updateSoundText();
 }
 function updateSoundText(){
+  const sbtn=document.getElementById("settingsSoundBtn");
+  if(sbtn){
+    sbtn.textContent = store.sound ? "SOUND ON" : "SOUND OFF";
+    sbtn.style.background = store.sound ? "#ffb020" : "#2d2d36";
+    sbtn.style.color = store.sound ? "#1a1200" : "#fff";
+  }
+
   const text="音 " + (store.sound?"ON":"OFF");
   const b=document.getElementById("soundBtn"); if(b)b.textContent=text;
   const m=document.getElementById("soundMenuText"); if(m)m.textContent="SOUND " + (store.sound?"ON":"OFF");
@@ -606,6 +723,19 @@ function calcRemaining(names){
   return rem;
 }
 function tap(name){
+
+  if(store.inputMode==="BUTTON"){
+    const num=name.replace("D","").replace("T","");
+    if(heldMode==="T") name="T"+num;
+    else if(heldMode==="D") name="D"+num;
+    else name=String(num);
+  }
+
+  if(store.inputMode==="FLICK"){
+    const num=name.replace("D","").replace("T","");
+    name=String(num);
+  }
+
   if(!current)return;
   selectedThrows.push(name);
   displayRem=calcRemaining(selectedThrows);

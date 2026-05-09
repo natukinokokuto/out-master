@@ -1,4 +1,4 @@
-const CACHE_NAME = "out-master-v10-8-3-zero-finish-fix";
+const CACHE_NAME = "out-master-v10-9-settings-modes";
 const ASSETS = [
   "./",
   "./index.html",

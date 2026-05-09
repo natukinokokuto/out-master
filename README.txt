@@ -1,5 +1,4 @@
-OUT MASTER v10.8.3 zero-finish-fix版
-修正点: S20などで0になった場合、マスターアウト失敗として即ミス扱いで次へ進むよう修正。
-GitHub Pagesには、このZIPの中身をリポジトリ直下に上書きアップロードしてください。
-assetsフォルダも一緒にアップロードしてください。
-更新確認用: URL末尾に ?ver=1083 を付けて開いてください。
+OUT MASTER v10.9
+SETTINGS画面追加
+CLASSIC / BUTTON / FLICK モード追加
+BUTTONモード: T/D押しながら数字入力
