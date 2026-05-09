@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="OUT MASTER">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>OUT MASTER v10.8</title>
+<title>OUT MASTER v10.8.1</title>
 <style>
 *{box-sizing:border-box}
 html,body{
@@ -350,7 +350,7 @@ svg{
       <span class="menuSub">ミス音 ON / OFF</span>
     </button>
   </div>
-  <div class="versionTiny">v10.8</div>
+  <div class="versionTiny">v10.8.1</div>
 </div>
 
 <div id="boardScreen" class="screen boardScreen hide">
@@ -405,9 +405,8 @@ for(let n=1;n<=20;n++){
   all.push({name:"T"+n,score:n*3,kind:"T"});
 }
 all.push({name:"BULL",score:50,kind:"B"});
-all.push({name:"SBULL",score:50,kind:"B"}); // v10.8: 外ブル・内ブルどちらも50点扱い
 
-const STORE_KEY = "outMasterBoardV108";
+const STORE_KEY = "outMasterBoardV1081";
 let store = loadStore();
 
 let playing=false, practiceMode=false, current=0, displayRem=0, round=0, miss=0, startTime=0, timerId=null, answerRoutes=[];
@@ -532,7 +531,7 @@ function drawBoard(){
     t.setAttribute("x",lx); t.setAttribute("y",ly); t.setAttribute("class","label"); t.textContent=n;
     svg.appendChild(t);
   }
-  addCircle(svg,11,"green","SBULL");
+  addCircle(svg,11,"green","BULL");
   addCircle(svg,5.8,"red","BULL");
 }
 function isFinish(t){return t.kind==="D" || t.kind==="T" || t.kind==="B"}
