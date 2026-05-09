@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="OUT MASTER">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>OUT MASTER v10.8.2</title>
+<title>OUT MASTER v10.8.3</title>
 <!-- v10.8.2 bull hardfix: green bull and red bull both return BULL=50 -->
 <style>
 *{box-sizing:border-box}
@@ -351,7 +351,7 @@ svg{
       <span class="menuSub">ミス音 ON / OFF</span>
     </button>
   </div>
-  <div class="versionTiny">v10.8.2</div>
+  <div class="versionTiny">v10.8.3</div>
 </div>
 
 <div id="boardScreen" class="screen boardScreen hide">
@@ -407,7 +407,7 @@ for(let n=1;n<=20;n++){
 }
 all.push({name:"BULL",score:50,kind:"B"});
 
-const STORE_KEY = "outMasterBoardV1082";
+const STORE_KEY = "outMasterBoardV1083";
 let store = loadStore();
 
 let playing=false, practiceMode=false, current=0, displayRem=0, round=0, miss=0, startTime=0, timerId=null, answerRoutes=[];
@@ -623,6 +623,16 @@ function tap(name){
     setTimeout(()=>nextRound(false),650);
     return;
   }
+
+  // v10.8.3: 0になったのに最後がマスターアウトじゃない場合は即ミス
+  if(displayRem===0 && !judgeSelectedRoute(selectedThrows)){
+    updateScoreDisplay("bad");
+    flash(false,`❌ マスターアウト失敗 ${selectedThrows.join(" → ")}`);
+    selectedThrows=[];
+    setTimeout(()=>nextRound(false),650);
+    return;
+  }
+
   updateScoreDisplay();
   flash(true,"入力: "+selectedThrows.join(" → "));
   if(judgeSelectedRoute(selectedThrows)){
