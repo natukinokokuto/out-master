@@ -1,4 +1,4 @@
-const CACHE_NAME = "out-master-v10-13-1-fade-loop";
+const CACHE_NAME = "out-master-v10-13-1-real-versionfix";
 const ASSETS = [
   "./",
   "./index.html",
