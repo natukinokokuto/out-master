@@ -1,7 +1,6 @@
-OUT MASTER v10.10.1 button-flick-fix版
-修正点:
-- BUTTONモードのT/D押しながら入力をスマホ同時押し対応に修正
-- FLICKモードに ↑T / TAP S / ↓D のガイド表示を追加
-- FLICKモードの実フリック判定を追加
-- PCデバッグ用: BUTTON時はT/Dキー押しっぱなし対応
-更新確認: ?ver=10101
+OUT MASTER v10.10.2 input-rebuild版
+修正:
+- BUTTONモード: T/D押しながら数字入力の同時押し対応を再実装
+- FLICKモード: ↑T / TAP S / ↓D のガイド表示とフリック判定を再実装
+- PCデバッグ: BUTTON時T/Dキー押しっぱなし対応
+更新確認: ?ver=10102
