@@ -1,4 +1,4 @@
-const CACHE_NAME = "out-master-v10-10-2-input-rebuild";
+const CACHE_NAME = "out-master-v10-10-2-versionfix";
 const ASSETS = [
   "./",
   "./index.html",
