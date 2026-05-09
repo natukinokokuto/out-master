@@ -1,4 +1,4 @@
-const CACHE_NAME = "out-master-v10-10-2-versionfix";
+const CACHE_NAME = "out-master-v10-10-3-menufix";
 const ASSETS = [
   "./",
   "./index.html",
