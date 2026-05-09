@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-title" content="OUT MASTER">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>OUT MASTER v10.13.1</title>
-<!-- v10.13.1 bull hardfix: green bull and red bull both return BULL=50 -->
+<title>OUT MASTER v10.13.3</title>
+<!-- v10.13.3 bull hardfix: green bull and red bull both return BULL=50 -->
 <style>
 *{box-sizing:border-box}
 html,body{
@@ -338,6 +338,31 @@ svg{
   transform:translateY(1px) scale(.96);
 }
 
+
+.audioSettingBlock{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.12);
+}
+.audioSettingTitle{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:#fff4e8;
+  font-size:13px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+.audioSlider{
+  width:100%;
+  accent-color:#ffb020;
+}
+.audioSmall{
+  color:#d8c3aa;
+  font-size:11px;
+  margin-top:4px;
+}
+
 </style>
 </head>
 <body>
@@ -374,7 +399,7 @@ svg{
       <span class="menuSub">入力モード・サウンド設定</span>
     </button>
   </div>
-  <div class="versionTiny">v10.13.1</div>
+  <div class="versionTiny">v10.13.3</div>
 </div>
 
 
@@ -409,7 +434,33 @@ svg{
       </div>
     </div>
 
-    <button class="menuBtn primary" onclick="closeSettings()">
+    
+    <div class="menuBtn" style="padding:18px">
+      <div class="menuTitle" style="font-size:20px">AUDIO</div>
+      <div class="menuSub" style="margin-top:8px">BGM / SE VOLUME</div>
+
+      <div class="audioSettingBlock">
+        <div class="audioSettingTitle">
+          <span>BGM</span>
+          <button id="settingsBgmBtn" onclick="toggleBgm()" style="padding:8px 12px;border-radius:10px;border:0;font-weight:900">BGM ON</button>
+        </div>
+
+        <input id="bgmVolumeSlider" class="audioSlider" type="range" min="0" max="100" value="22" oninput="setBgmVolume(this.value)">
+        <div class="audioSmall">背景音量</div>
+      </div>
+
+      <div class="audioSettingBlock">
+        <div class="audioSettingTitle">
+          <span>SE VOLUME</span>
+          <span id="seVolumeValue">82%</span>
+        </div>
+
+        <input id="seVolumeSlider" class="audioSlider" type="range" min="0" max="100" value="82" oninput="setSeVolume(this.value)">
+        <div class="audioSmall">命中音・歓声・MISS音量</div>
+      </div>
+    </div>
+
+<button class="menuBtn primary" onclick="closeSettings()">
       <span class="menuTitle">BACK</span>
     </button>
   </div>
@@ -475,7 +526,7 @@ for(let n=1;n<=20;n++){
 }
 all.push({name:"BULL",score:50,kind:"B"});
 
-const STORE_KEY = "outMasterBoardV10131";
+const STORE_KEY = "outMasterBoardV10133";
 let store = loadStore();
 
 let playing=false, practiceMode=false, current=0, displayRem=0, round=0, miss=0, startTime=0, timerId=null, answerRoutes=[];
@@ -610,52 +661,7 @@ function transition(from,to){
   document.getElementById(from).classList.add("hide");
   setTimeout(()=>document.getElementById(to).classList.remove("hide"),240);
 }
-document.getElementById("titleScreen").addEventListener("click",()=>transition("titleScreen","menuScreen"));
-
-
-
-
-
-function openSettings(){
-  const menu=document.getElementById("menuScreen");
-  const settings=document.getElementById("settingsScreen");
-  if(menu) menu.classList.add("hide");
-  if(settings) settings.classList.remove("hide");
-  updateInputGuide();
-  if(typeof refreshModeUI==="function") refreshModeUI();
-}
-
-function closeSettings(){
-  const menu=document.getElementById("menuScreen");
-  const settings=document.getElementById("settingsScreen");
-  if(settings) settings.classList.add("hide");
-  if(menu) menu.classList.remove("hide");
-}
-
-function setInputMode(mode){
-  store.inputMode=mode;
-  saveStore();
-  refreshModeUI();
-  updateInputGuide();
-}
-
-function refreshModeUI(){
-  updateInputGuide();
-  const modes=["CLASSIC","BUTTON","FLICK"];
-
-  modes.forEach(m=>{
-    const id = m.toLowerCase()+"ModeBtn";
-    const btn=document.getElementById(id);
-    if(!btn)return;
-
-    if(store.inputMode===m){
-      btn.style.background="#ffb020";
-      btn.style.color="#1a1200";
-    }else{
-      btn.style.background="#2d2d36";
-      btn.style.color="#fff";
-    }
-  });
+document.getElementById("titleScreen").addEventListener("click",()=>{ startBgmIfNeeded(); transition("titleScreen","menuScreen"); });
 
   const explain=document.getElementById("modeExplain");
 
@@ -676,6 +682,91 @@ function refreshModeUI(){
 }
 
 
+let bgmFadeInterval=null;
+
+function applyAudioSettings(){
+  const bgm=document.getElementById("bgmAudio");
+  if(bgm){
+    bgm.volume = Number(store.bgmVolume ?? 0.22);
+  }
+
+  const bgmBtn=document.getElementById("settingsBgmBtn");
+  if(bgmBtn){
+    bgmBtn.textContent = store.bgm ? "BGM ON" : "BGM OFF";
+    bgmBtn.style.background = store.bgm ? "#ffb020" : "#2d2d36";
+    bgmBtn.style.color = store.bgm ? "#1a1200" : "#fff";
+  }
+
+  const bgmSlider=document.getElementById("bgmVolumeSlider");
+  if(bgmSlider) bgmSlider.value = Math.round((store.bgmVolume ?? 0.22)*100);
+
+  const seSlider=document.getElementById("seVolumeSlider");
+  if(seSlider) seSlider.value = Math.round((store.seVolume ?? 0.82)*100);
+
+  const seValue=document.getElementById("seVolumeValue");
+  if(seValue) seValue.textContent = Math.round((store.seVolume ?? 0.82)*100) + "%";
+}
+
+function toggleBgm(){
+  store.bgm = !store.bgm;
+  saveStore();
+  applyAudioSettings();
+  if(store.bgm) startBgmIfNeeded();
+  else {
+    const bgm=document.getElementById("bgmAudio");
+    if(bgm) bgm.pause();
+  }
+}
+
+function setBgmVolume(v){
+  store.bgmVolume = Number(v)/100;
+  saveStore();
+  applyAudioSettings();
+}
+
+function setSeVolume(v){
+  store.seVolume = Number(v)/100;
+  saveStore();
+  applyAudioSettings();
+}
+
+function startFadeLoopBgm(){
+  const bgm=document.getElementById("bgmAudio");
+  if(!bgm || !store.bgm) return;
+
+  if(bgmFadeInterval) clearInterval(bgmFadeInterval);
+
+  bgmFadeInterval=setInterval(()=>{
+    if(!bgm.duration || isNaN(bgm.duration)) return;
+
+    const remain = bgm.duration - bgm.currentTime;
+    const target = Number(store.bgmVolume ?? 0.22);
+
+    if(remain <= 2.2){
+      const ratio = Math.max(0.05, remain / 2.2);
+      bgm.volume = target * ratio;
+    }else{
+      bgm.volume = target;
+    }
+
+    if(remain <= 0.08){
+      bgm.currentTime = 0;
+      bgm.volume = target;
+      const p=bgm.play();
+      if(p && p.catch) p.catch(()=>{});
+    }
+  }, 40);
+}
+
+function startBgmIfNeeded(){
+  const bgm=document.getElementById("bgmAudio");
+  if(!bgm || !store.bgm) return;
+  bgm.volume = Number(store.bgmVolume ?? 0.22);
+  const p = bgm.play();
+  if(p && p.catch) p.catch(()=>{});
+  startFadeLoopBgm();
+}
+
 function playSE(type){
   if(!store.sound) return;
   const map = {
@@ -686,14 +777,16 @@ function playSE(type){
     bull:"seBull",
     perfect:"sePerfect",
     miss:"seMiss",
-    good:"seGood",
     good:"seGood"
   };
   const el=document.getElementById(map[type]);
   if(!el) return;
   try{
+    el.pause();
     el.currentTime=0;
-    el.play();
+    el.volume = Number(store.seVolume ?? 0.82);
+    const p = el.play();
+    if(p && p.catch) p.catch(()=>{});
   }catch(e){}
 }
 
@@ -734,6 +827,7 @@ function showPerfect(big,small){
 function startTA(){practiceMode=false; startGame();}
 function startPractice(){practiceMode=true; startGame();}
 function startGame(){
+  startBgmIfNeeded();
   document.getElementById("titleScreen").classList.add("hide");
   document.getElementById("menuScreen").classList.add("hide");
   document.getElementById("resultCard").classList.add("hide");
@@ -931,7 +1025,7 @@ if(!current)return;
     return;
   }
 
-  // v10.13.1: 0になったのに最後がマスターアウトじゃない場合は即ミス
+  // v10.13.3: 0になったのに最後がマスターアウトじゃない場合は即ミス
   if(displayRem===0 && !judgeSelectedRoute(selectedThrows)){
     updateScoreDisplay("bad");
     flash(false,`❌ マスターアウト失敗 ${selectedThrows.join(" → ")}`);
@@ -944,7 +1038,8 @@ if(!current)return;
   flash(true,"入力: "+selectedThrows.join(" → "));
   if(judgeSelectedRoute(selectedThrows)){
     const popular=isPopularRoute(selectedThrows);
-    if(popular){bonusTime+=.5; showPerfect("PERFECT!!","王道ルートボーナス -0.5s!!"); playSE("perfect")}
+    if(popular){bonusTime+=.5; showPerfect("PERFECT!!","王道ルートボーナス -0.5s!!"); playSE("perfect"); playSE("perfect")}
+    if(popular){ playSE("perfect"); } else { playSE("good"); } // audiofix-good
     flash(true,`⭕ ${popular ? "PERFECT！" : "GOOD."} ${selectedThrows.join(" → ")}`);
     selectedThrows=[];
     setTimeout(()=>nextRound(true),560);
@@ -1010,16 +1105,19 @@ updateInputGuide();
 drawBoard();
 </script>
 
+
+
+<!-- VERSION: 10133 -->
+
 <audio id="seButton" src="./assets/se/button.wav" preload="auto"></audio>
 <audio id="seSingle" src="./assets/se/single.wav" preload="auto"></audio>
 <audio id="seTriple" src="./assets/se/triple.wav" preload="auto"></audio>
 <audio id="seDouble" src="./assets/se/double.wav" preload="auto"></audio>
 <audio id="seBull" src="./assets/se/bull.wav" preload="auto"></audio>
-<audio id="sePerfect" src="./assets/se/perfect.wav" preload="auto"></audio>
+<audio id="sePerfect" src="./assets/se/perfect.mp3" preload="auto"></audio>
 <audio id="seMiss" src="./assets/se/miss.wav" preload="auto"></audio>
-<audio id="seGood" src="./assets/se/perfect.wav" preload="auto"></audio>
+<audio id="seGood" src="./assets/se/good.mp3" preload="auto"></audio>
+<audio id="bgmAudio" src="./assets/bgm.mp3" preload="auto"></audio>
 
-
-<!-- VERSION: 10131 -->
 </body>
 </html>

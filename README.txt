@@ -1,6 +1,7 @@
-OUT MASTER v10.13 bgm-volume版
-追加:
-- BGM導入: assets/bgm.mp3
-- SETTINGSにBGM ON/OFF、BGM VOLUME、SE VOLUME追加
-- BGMはユーザー操作後に再生開始
-更新確認: ?ver=1013
+OUT MASTER v10.13.2 audiofix版
+修正:
+- GOOD音をgood.mp3として確実に再生
+- PERFECT音をperfect.mp3として確実に再生
+- BGM再生開始処理を修正
+- BGMフェードループ維持
+更新確認: ?ver=10132

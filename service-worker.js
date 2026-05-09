@@ -1,4 +1,4 @@
-const CACHE_NAME = "out-master-v10-13-1-real-versionfix";
+const CACHE_NAME = "out-master-v10-13-3-settings-audio-ui";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,7 +6,15 @@ const ASSETS = [
   "./icon-192.png",
   "./icon-512.png",
   "./assets/menu-bg.jpg",
-  "./assets/bgm.mp3"
+  "./assets/bgm.mp3",
+  "./assets/se/good.mp3",
+  "./assets/se/perfect.mp3",
+  "./assets/se/single.wav",
+  "./assets/se/double.wav",
+  "./assets/se/triple.wav",
+  "./assets/se/bull.wav",
+  "./assets/se/miss.wav",
+  "./assets/se/button.wav"
 ];
 
 self.addEventListener("install", event => {
