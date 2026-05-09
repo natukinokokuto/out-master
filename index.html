@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OUT MASTER">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#101014">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>OUT MASTER Board v10</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#101014;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  main{max-width:860px;margin:auto;padding:14px}
+  .card{background:#1b1b22;border:1px solid #30303a;border-radius:18px;padding:14px;margin-bottom:12px}
+  h1{font-size:22px;margin:4px 0 8px}
+  .top{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+  .score{font-size:64px;font-weight:900;color:#ffb020;text-align:center;line-height:1}
+  .round{color:#aaa}
+  button{border:0;border-radius:12px;padding:12px 14px;background:#2d2d36;color:#fff;font-size:16px;font-weight:700}
+  button.primary{background:#ffb020;color:#1a1200}
+  button.danger{background:#442020;color:#ffd0d0}
+  button.ok{background:#174022;color:#c8ffd6}
+  button.practiceOn{background:#174022;color:#c8ffd6}
+  .status{min-height:32px;text-align:center;font-size:18px;font-weight:800;margin-top:8px}
+  .good{color:#22c55e}.bad{color:#ef4444}.muted{color:#aaa;font-size:13px;line-height:1.6}
+  .boardwrap{display:flex;justify-content:center;touch-action:manipulation}
+  svg{width:min(96vw,520px);height:auto;display:block}
+  .seg{cursor:pointer;stroke:#111;stroke-width:.7}
+  .seg:hover{opacity:.75}
+  .black{fill:#242424}.white{fill:#ececec}.red{fill:#d84835}.green{fill:#2e8b57}
+  .label{font-size:10px;fill:#f5f5f5;text-anchor:middle;dominant-baseline:middle;font-weight:800;pointer-events:none}
+  .centerText{text-align:center;margin:8px 0}
+  .bigResult{font-size:34px;font-weight:900;text-align:center;color:#ffb020}
+  .hide{display:none}
+  .nooutBtn:hover{opacity:.9}
+  .nooutBtn{position:relative;right:0;bottom:0;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #ff6b6b, #c62828 70%);border:6px solid #5a0f0f;color:white;font-weight:900;font-size:17px;letter-spacing:.05em;box-shadow:0 0 0 6px rgba(255,255,255,.08),0 12px 30px rgba(0,0,0,.55),inset 0 6px 12px rgba(255,255,255,.18),inset 0 -8px 12px rgba(0,0,0,.25);z-index:999;display:flex;align-items:center;justify-content:center;text-align:center}
+  .nooutBtn:active{transform:translateY(3px) scale(.97)}
+  .boardArea{display:flex;flex-direction:column;align-items:center;gap:12px}
+  .nooutWrap{width:min(96vw,520px);display:flex;justify-content:flex-end;padding-right:6px}
+  html,body{height:100%;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+  main{padding:10px}
+  h1{font-size:20px}.score{font-size:62px}.card{padding:12px;margin-bottom:9px}.muted{font-size:12px}.top button{flex:1 1 auto}
+  .perfectOverlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;z-index:9999}.perfectOverlay.show{animation:perfectPop .9s ease-out forwards}.perfectBox{text-align:center;padding:24px 28px;border-radius:28px;background:rgba(0,0,0,.78);border:1px solid rgba(255,176,32,.45);box-shadow:0 0 48px rgba(255,176,32,.35)}.perfectBig{font-size:42px;font-weight:1000;color:#ffb020;letter-spacing:.04em}.perfectSmall{margin-top:8px;color:#fff;font-weight:900;font-size:18px}
+  .rankingList{display:flex;flex-direction:column;gap:8px;margin-top:10px}.rankItem{display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;background:#14141a;border:1px solid #30303a;border-radius:14px;padding:10px;font-size:13px}.rankNo{color:#ffb020;font-weight:900}.rankName{font-weight:900}.rankMeta{color:#aaa;text-align:right;font-size:12px}
+  @keyframes perfectPop{0%{opacity:0;transform:scale(.7)}12%{opacity:1;transform:scale(1.08)}70%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.1)}}
+  @media (max-width: 520px){svg{width:94vw}.score{font-size:58px}.nooutBtn{width:92px;height:92px;font-size:15px}.card:first-child .muted{line-height:1.45}.perfectBig{font-size:34px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <h1>🎯 OUT MASTER Board v10</h1>
+    <div class="muted">8ラウンド制。残り点を見て、盤面を3回タップして上がりルートを作成。上がれない時は「上がれない」。<br>ミスは最後に <b>×5秒</b> 加算。ルール：マスターアウト想定、残り1は詰み。</div>
+    <div class="top" style="margin-top:10px">
+      <button class="primary" onclick="startGame()">スタート</button>
+      <button id="practiceBtn" onclick="togglePractice()">練習モード OFF</button>
+      <button id="soundBtn" onclick="toggleSound()">ミス音 ON</button>
+      <button onclick="toggleRanking()">ランキング</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="top"><div class="round" id="round">ROUND - / 8</div><div class="round">TIME <span id="timer">0.00</span>s</div><div class="round">MISS <span id="miss">0</span></div></div>
+    <div class="centerText">残り点</div><div class="score" id="score">---</div><div id="status" class="status"></div>
+  </div>
+  <div class="card boardwrap boardArea"><svg id="board" viewBox="-120 -120 240 240" aria-label="dart board"></svg><button class="nooutBtn" onclick="answerNoOut()">上がれない</button></div>
+  <div class="card hide" id="resultCard"><div class="centerText">RESULT</div><div class="bigResult" id="finalScore"></div><div class="centerText" id="detail"></div><div class="centerText"><button class="primary" onclick="startGame()">もう一回</button></div></div>
+  <div class="card hide" id="rankingCard"><div class="centerText"><b>LOCAL RANKING</b></div><div class="muted centerText">端末内保存 / TA TOP 10</div><div class="rankingList" id="rankingList"></div></div>
+  <div class="perfectOverlay" id="perfectOverlay"><div class="perfectBox"><div class="perfectBig" id="perfectBig">PERFECT!!</div><div class="perfectSmall" id="perfectSmall">王道ルートボーナス -0.5s!!</div></div></div>
+</main>
+<script>
+const nums=[20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+const all=[];for(let n=1;n<=20;n++){all.push({name:String(n),score:n,kind:"S"});all.push({name:"D"+n,score:n*2,kind:"D"});all.push({name:"T"+n,score:n*3,kind:"T"})}all.push({name:"BULL",score:50,kind:"B"});all.push({name:"SBULL",score:25,kind:"S"});
+let playing=false,practiceMode=false,current=0,round=0,miss=0,startTime=0,timerId=null,validFirsts=new Set(),answerRoutes=[];
+const STORE_KEY="outMasterBoardV10";let store=loadStore();
+function loadStore(){try{return Object.assign({sound:true,best:null,ranking:[],total:0,correct:0},JSON.parse(localStorage.getItem(STORE_KEY)||"{}"))}catch(e){return{sound:true,best:null,ranking:[],total:0,correct:0}}}
+function saveStore(){localStorage.setItem(STORE_KEY,JSON.stringify(store))}
+function toggleSound(){store.sound=!store.sound;saveStore();const b=document.getElementById("soundBtn");if(b)b.textContent="ミス音 "+(store.sound?"ON":"OFF")}
+function missSound(){if(!store.sound)return;try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const osc=ctx.createOscillator();const gain=ctx.createGain();osc.type="sawtooth";osc.frequency.value=145;gain.gain.setValueAtTime(.12,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.18);osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.18)}catch(e){}}
+function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function showPerfect(big,small){const o=document.getElementById("perfectOverlay");document.getElementById("perfectBig").textContent=big;document.getElementById("perfectSmall").textContent=small;o.classList.remove("show");void o.offsetWidth;o.classList.add("show")}
+function toggleRanking(){const card=document.getElementById("rankingCard");card.classList.toggle("hide");renderRanking()}
+function renderRanking(){const list=document.getElementById("rankingList");if(!list)return;if(!store.ranking.length){list.innerHTML='<div class="muted centerText">まだ記録なし。TAで遊ぶと登録される。</div>';return}list.innerHTML=store.ranking.map((r,i)=>`<div class="rankItem"><div class="rankNo">#${i+1}</div><div class="rankName">${escapeHtml(r.name)}</div><div class="rankMeta">${Number(r.time).toFixed(2)}秒<br>MISS ${r.miss}</div></div>`).join("")}
+function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]))}
+function registerRanking(final,raw){if(store.best===null||final<store.best)store.best=final;const name=prompt("ランキング登録名",localStorage.getItem("outMasterName")||"HOKUTO")||"NO NAME";localStorage.setItem("outMasterName",name);store.ranking.push({name:name.slice(0,12),time:Number(final.toFixed(2)),raw:Number(raw.toFixed(2)),miss,bonus:Number(bonusTime.toFixed(1)),date:today()});store.ranking.sort((a,b)=>a.time-b.time||a.miss-b.miss);store.ranking=store.ranking.slice(0,10);saveStore();renderRanking();document.getElementById("rankingCard").classList.remove("hide")}
+function polar(r,a){return[r*Math.cos(a),r*Math.sin(a)]}
+function wedgePath(r1,r2,a1,a2){const[x1,y1]=polar(r2,a1),[x2,y2]=polar(r2,a2),[x3,y3]=polar(r1,a2),[x4,y4]=polar(r1,a1);return `M ${x1} ${y1} A ${r2} ${r2} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${r1} ${r1} 0 0 0 ${x4} ${y4} Z`}
+function addWedge(svg,r1,r2,a1,a2,cls,name){const p=document.createElementNS("http://www.w3.org/2000/svg","path");p.setAttribute("d",wedgePath(r1,r2,a1,a2));p.setAttribute("class","seg "+cls);p.onclick=()=>tap(name);svg.appendChild(p)}
+function addCircle(svg,r,cls,name){const c=document.createElementNS("http://www.w3.org/2000/svg","circle");c.setAttribute("cx",0);c.setAttribute("cy",0);c.setAttribute("r",r);c.setAttribute("class","seg "+cls);c.onclick=()=>tap(name);svg.appendChild(c)}
+function drawBoard(){const svg=document.getElementById("board");svg.innerHTML="";const start=-Math.PI/2-Math.PI/20;for(let i=0;i<20;i++){const n=nums[i],a1=start+i*Math.PI/10,a2=start+(i+1)*Math.PI/10;const base=(i%2===0)?"black":"white";const ring=(i%2===0)?"red":"green";addWedge(svg,78,98,a1,a2,ring,"D"+n);addWedge(svg,52,78,a1,a2,base,String(n));addWedge(svg,38,52,a1,a2,ring,"T"+n);addWedge(svg,10,42,a1,a2,base,String(n));const mid=(a1+a2)/2,[lx,ly]=polar(108,mid);const t=document.createElementNS("http://www.w3.org/2000/svg","text");t.setAttribute("x",lx);t.setAttribute("y",ly);t.setAttribute("class","label");t.textContent=n;svg.appendChild(t)}addCircle(svg,10,"green","SBULL");addCircle(svg,5,"red","BULL")}
+function isFinish(t){return t.kind==="D"||t.kind==="T"||t.kind==="B"}
+function findRoutes(score,darts=3){const res=[];function dfs(rem,left,path){if(left===0){if(rem===0)res.push(path);return}for(const t of all){if(t.name==="SBULL")continue;if(t.score>rem)continue;const next=rem-t.score;if(next===1)continue;if(left===1&&!isFinish(t))continue;dfs(next,left-1,path.concat(t));if(res.length>300)return}}dfs(score,darts,[]);return res}
+function chooseScore(){const hot=[170,167,164,161,160,158,157,156,155,154,153,152,151,150,149,148,147,146,145,144,143,142,141,140,139,138,137,136,135,134,133,132,131,130,129,128,127,126,125,124,123,122,121,120,119,118,117,116,115,114,113,112,111,110,109,108,107,106,105,104,103,102,101,100,99,98,97,96,95,94,93,92,91,90,89,88,87,86,85,84,83,82,81,80,79,78,77,76,75,74,73,72,71,70,69,68,67,66,65,64,63,62,61,60,59,58,57,56,55,54,53,52,51,50,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,169,168,166,165,163,162,159];return hot[Math.floor(Math.random()*hot.length)]}
+function setQuestion(){current=chooseScore();answerRoutes=findRoutes(current,3);validFirsts=new Set(answerRoutes.map(r=>r[0].name));document.getElementById("score").textContent=current;document.getElementById("round").textContent=practiceMode?`PRACTICE ${round}`:`ROUND ${round} / 8`;document.getElementById("status").textContent="";selectedThrows=[]}
+function startGame(){practiceMode=false;const pb=document.getElementById("practiceBtn");if(pb){pb.textContent="練習モード OFF";pb.className=""}playing=true;round=1;miss=0;bonusTime=0;startTime=performance.now();document.getElementById("miss").textContent=miss;document.getElementById("resultCard").classList.add("hide");setQuestion();clearInterval(timerId);timerId=setInterval(()=>{document.getElementById("timer").textContent=((performance.now()-startTime)/1000).toFixed(2)},50)}
+function togglePractice(){practiceMode=!practiceMode;playing=false;clearInterval(timerId);document.getElementById("timer").textContent="0.00";document.getElementById("resultCard").classList.add("hide");document.getElementById("practiceBtn").textContent=practiceMode?"練習モード ON":"練習モード OFF";document.getElementById("practiceBtn").className=practiceMode?"practiceOn":"";round=1;miss=0;document.getElementById("miss").textContent=0;setQuestion()}
+function nextRound(ok){if(!ok)miss++;document.getElementById("miss").textContent=miss;if(practiceMode){round++;setQuestion();return}if(round>=8&&playing){finishGame();return}if(playing){round++;setQuestion()}}
+const popularRoutes={170:["T20","T20","BULL"],167:["T20","T19","BULL"],164:["T20","T18","BULL"],161:["T20","T17","BULL"],160:["T20","T20","D20"],158:["T20","T20","D19"],157:["T20","T19","D20"],156:["T20","T20","D18"],155:["T20","T19","D19"],154:["T20","T18","D20"],121:["T20","11","BULL"],100:["T20","D20"],81:["T19","D12"],72:["16","D20"],68:["T20","D4"],40:["D20"]};
+let bonusTime=0;function isPopularRoute(names){const r=popularRoutes[current];if(!r)return false;return r.join("|")===names.join("|")}let selectedThrows=[];function throwByName(name){return all.find(t=>t.name===name)}
+function judgeSelectedRoute(names){let rem=current;for(let i=0;i<names.length;i++){const t=throwByName(names[i]);if(!t)return false;rem-=t.score;if(rem<0)return false;if(rem===1)return false;if(rem===0){return isFinish(t)}}return false}
+function tap(name){if(!current)return;selectedThrows.push(name);flash(true,"入力: "+selectedThrows.join(" → "));if(selectedThrows.length>=1){const partialOk=judgeSelectedRoute(selectedThrows);if(partialOk){const popular=isPopularRoute(selectedThrows);if(popular){bonusTime+=0.5;showPerfect("PERFECT!!","王道ルートボーナス -0.5s!!")}const label=practiceMode?(popular?"PERFECT！":"GOOD."):(popular?"PERFECT！ ボーナス-0.5s！":"GOOD.");flash(true,`⭕ ${label} ${selectedThrows.join(" → ")}`);selectedThrows=[];setTimeout(()=>nextRound(true),500);return}}if(selectedThrows.length<3)return;const ok=judgeSelectedRoute(selectedThrows);const popular=ok&&isPopularRoute(selectedThrows);if(popular){bonusTime+=0.5;showPerfect("PERFECT!!","王道ルートボーナス -0.5s!!")}const label=practiceMode?(popular?"PERFECT！":"GOOD."):(popular?"PERFECT！ ボーナス-0.5s！":"GOOD.");flash(ok,ok?`⭕ ${label} ${selectedThrows.join(" → ")}`:`❌ ${selectedThrows.join(" → ")} 不正解`);selectedThrows=[];setTimeout(()=>nextRound(ok),500)}
+function answerNoOut(){if(!current)return;const ok=answerRoutes.length===0;flash(ok,ok?"⭕ 上がれない 正解":"❌ 上がれる");setTimeout(()=>nextRound(ok),260)}
+function flash(ok,msg){const s=document.getElementById("status");s.className="status "+(ok?"good":"bad");s.textContent=msg;if(!ok)missSound()}
+function finishGame(){playing=false;clearInterval(timerId);const raw=(performance.now()-startTime)/1000;const final=Math.max(0,raw+(miss*5)-bonusTime);document.getElementById("timer").textContent=raw.toFixed(2);document.getElementById("finalScore").textContent=final.toFixed(2)+" 秒";document.getElementById("detail").textContent=`実時間 ${raw.toFixed(2)}秒 + ミス${miss}個 × 5秒 - 王道ボーナス${bonusTime.toFixed(1)}秒`;document.getElementById("resultCard").classList.remove("hide");registerRanking(final,raw)}
+if("serviceWorker" in navigator&&location.protocol!=="file:"){navigator.serviceWorker.register("./service-worker.js").catch(()=>{})}
+const sb=document.getElementById("soundBtn");if(sb)sb.textContent="ミス音 "+(store.sound?"ON":"OFF");renderRanking();drawBoard();
+</script>
+</body>
+</html>
