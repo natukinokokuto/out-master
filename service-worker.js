@@ -1,4 +1,4 @@
-const CACHE_NAME = "out-master-v10-11-crowd-se";
+const CACHE_NAME = "out-master-v10-12-custom-audio";
 const ASSETS = [
   "./",
   "./index.html",
