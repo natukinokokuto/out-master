@@ -8,7 +8,8 @@
 <meta name="apple-mobile-web-app-title" content="OUT MASTER">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>OUT MASTER v10.8.1</title>
+<title>OUT MASTER v10.8.2</title>
+<!-- v10.8.2 bull hardfix: green bull and red bull both return BULL=50 -->
 <style>
 *{box-sizing:border-box}
 html,body{
@@ -350,7 +351,7 @@ svg{
       <span class="menuSub">ミス音 ON / OFF</span>
     </button>
   </div>
-  <div class="versionTiny">v10.8.1</div>
+  <div class="versionTiny">v10.8.2</div>
 </div>
 
 <div id="boardScreen" class="screen boardScreen hide">
@@ -406,7 +407,7 @@ for(let n=1;n<=20;n++){
 }
 all.push({name:"BULL",score:50,kind:"B"});
 
-const STORE_KEY = "outMasterBoardV1081";
+const STORE_KEY = "outMasterBoardV1082";
 let store = loadStore();
 
 let playing=false, practiceMode=false, current=0, displayRem=0, round=0, miss=0, startTime=0, timerId=null, answerRoutes=[];
@@ -540,7 +541,7 @@ function findRoutes(score,darts=3){
   function dfs(rem,left,path){
     if(left===0){if(rem===0)res.push(path);return}
     for(const t of all){
-      if(t.name==="SBULL")continue;
+      
       if(t.score>rem)continue;
       const next=rem-t.score;
       if(next===1)continue;
@@ -580,7 +581,11 @@ function isPopularRoute(names){
   const r=popularRoutes[current]; if(!r)return false;
   return r.join("|")===names.join("|");
 }
-function throwByName(name){return all.find(t=>t.name===name)}
+function throwByName(name){
+  if(name==="SBULL") return {name:"BULL",score:50,kind:"B"};
+  if(name==="BULL") return {name:"BULL",score:50,kind:"B"};
+  return all.find(t=>t.name===name);
+}
 function judgeSelectedRoute(names){
   let rem=current;
   for(const name of names){
