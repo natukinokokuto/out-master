@@ -1,10 +1,8 @@
-OUT MASTER v10.13.6 recovery版
+OUT MASTER v10.13.7 recovery fix
 
-修正内容:
-- v10.13.4で壊れていたSETTINGS関連JSの欠落を復旧
-- タップ不能の原因になっていた構文エラーを修正
-- manifest iconsを復旧
-- PWAキャッシュ対策で 10136 に更新
-- Service WorkerはHTMLをネット優先に変更
-
-GitHub Pagesにアップする時は、このZIPの中身をそのままルートへ上書きしてください。
+修正:
+- SETTINGS画面からBACKで戻れない問題を修正
+- SETTINGS画面をiPhoneでスクロール可能に調整
+- BGM音量スライダーが反応しない問題を修正
+- ダーツボード入力が二重入力になる問題を修正
+- PWAキャッシュ番号を10137へ更新

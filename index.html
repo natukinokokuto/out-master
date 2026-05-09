@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#101014">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OUT MASTER">
-<link rel="manifest" href="manifest.json?v=10136">
+<link rel="manifest" href="manifest.json?v=10137">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>OUT MASTER v10.13.6</title>
-<!-- v10.13.6 bull hardfix: green bull and red bull both return BULL=50 -->
+<title>OUT MASTER v10.13.7</title>
+<!-- v10.13.7 bull hardfix: green bull and red bull both return BULL=50 -->
 <style>
 *{box-sizing:border-box}
 html,body{
@@ -363,6 +363,26 @@ svg{
   margin-top:4px;
 }
 
+/* v10.13.7 touch/settings recovery */
+#settingsScreen{
+  overflow-y:auto;
+  align-items:flex-start;
+  justify-content:center;
+  -webkit-overflow-scrolling:touch;
+  padding:calc(16px + env(safe-area-inset-top)) 0 calc(28px + env(safe-area-inset-bottom));
+}
+#settingsScreen .menuPanel{
+  margin-top:0;
+  padding-bottom:24px;
+}
+input[type=range], .audioSlider{
+  touch-action:pan-x;
+  pointer-events:auto;
+}
+#board, #board *{
+  touch-action:none;
+}
+
 </style>
 </head>
 <body>
@@ -399,7 +419,7 @@ svg{
       <span class="menuSub">入力モード・サウンド設定</span>
     </button>
   </div>
-  <div class="versionTiny">v10.13.6</div>
+  <div class="versionTiny">v10.13.7</div>
 </div>
 
 
@@ -445,7 +465,7 @@ svg{
           <button id="settingsBgmBtn" onclick="toggleBgm()" style="padding:8px 12px;border-radius:10px;border:0;font-weight:900">BGM ON</button>
         </div>
 
-        <input id="bgmVolumeSlider" class="audioSlider" type="range" min="0" max="100" value="22" oninput="setBgmVolume(this.value)">
+        <input id="bgmVolumeSlider" class="audioSlider" type="range" min="0" max="100" value="22" oninput="setBgmVolume(this.value)" onchange="setBgmVolume(this.value)">
         <div class="audioSmall">背景音量</div>
       </div>
 
@@ -455,7 +475,7 @@ svg{
           <span id="seVolumeValue">82%</span>
         </div>
 
-        <input id="seVolumeSlider" class="audioSlider" type="range" min="0" max="100" value="82" oninput="setSeVolume(this.value)">
+        <input id="seVolumeSlider" class="audioSlider" type="range" min="0" max="100" value="82" oninput="setSeVolume(this.value)" onchange="setSeVolume(this.value)">
         <div class="audioSmall">命中音・歓声・MISS音量</div>
       </div>
     </div>
@@ -526,7 +546,7 @@ for(let n=1;n<=20;n++){
 }
 all.push({name:"BULL",score:50,kind:"B"});
 
-const STORE_KEY = "outMasterBoardV10136";
+const STORE_KEY = "outMasterBoardV10137";
 let store = loadStore();
 
 let playing=false, practiceMode=false, current=0, displayRem=0, round=0, miss=0, startTime=0, timerId=null, answerRoutes=[];
@@ -629,11 +649,20 @@ function applyMultiplier(name,multi){
 }
 
 function boardPointerDown(e,name){
+  if(e){
+    e.preventDefault();
+    e.stopPropagation();
+  }
   flickStart={x:e.clientX,y:e.clientY,name};
 }
 
 function boardPointerUp(e,name){
+  if(e){
+    e.preventDefault();
+    e.stopPropagation();
+  }
   lastPointerAt=Date.now();
+
   if(store.inputMode==="FLICK" && flickStart){
     const dy=e.clientY-flickStart.y;
     flickStart=null;
@@ -642,6 +671,8 @@ function boardPointerUp(e,name){
     tap(applyMultiplier(name,"S"));
     return;
   }
+
+  flickStart=null;
 
   if(store.inputMode==="BUTTON"){
     tap(applyMultiplier(name, heldMode || "S"));
@@ -708,7 +739,8 @@ function openSettings(){
 }
 
 function closeSettings(){
-  transition("settingsScreen","menuScreen");
+  document.getElementById("settingsScreen").classList.add("hide");
+  setTimeout(()=>document.getElementById("menuScreen").classList.remove("hide"),120);
 }
 
 
@@ -752,6 +784,7 @@ function setBgmVolume(v){
   store.bgmVolume = Number(v)/100;
   saveStore();
   applyAudioSettings();
+  if(store.bgm) startBgmIfNeeded();
 }
 
 function setSeVolume(v){
@@ -1014,8 +1047,9 @@ function calcRemaining(names){
 }
 
 function boardClickFallback(e,name){
-  // PC用保険。pointerup直後のclickは二重入力防止で無視。
-  if(Date.now()-lastPointerAt < 180) return;
+  // PointerEvent対応端末ではpointerupだけで入力。clickとの二重入力を完全防止。
+  if("PointerEvent" in window) return;
+  if(Date.now()-lastPointerAt < 700) return;
 
   if(store.inputMode==="BUTTON"){
     tap(applyMultiplier(name, heldMode || "S"));
@@ -1055,7 +1089,7 @@ if(!current)return;
     return;
   }
 
-  // v10.13.6: 0になったのに最後がマスターアウトじゃない場合は即ミス
+  // v10.13.7: 0になったのに最後がマスターアウトじゃない場合は即ミス
   if(displayRem===0 && !judgeSelectedRoute(selectedThrows)){
     updateScoreDisplay("bad");
     flash(false,`❌ マスターアウト失敗 ${selectedThrows.join(" → ")}`);
@@ -1127,19 +1161,20 @@ window.addEventListener("keyup",(e)=>{
 });
 
 if("serviceWorker" in navigator && location.protocol!=="file:"){
-  navigator.serviceWorker.register("./service-worker.js?v=10136").catch(()=>{});
+  navigator.serviceWorker.register("./service-worker.js?v=10137").catch(()=>{});
 }
 updateSoundText();
 applyAudioSettings();
 installHoldButtons();
 updateInputGuide();
 updateModeButtons();
+applyAudioSettings();
 drawBoard();
 </script>
 
 
 
-<!-- VERSION: 10136 -->
+<!-- VERSION: 10137 -->
 
 <audio id="seButton" src="./assets/se/button.wav" preload="auto"></audio>
 <audio id="seSingle" src="./assets/se/single.wav" preload="auto"></audio>
@@ -1152,6 +1187,6 @@ drawBoard();
 <audio id="bgmAudio" src="./assets/bgm.mp3" preload="auto"></audio>
 
 
-<div id="debugVersion" style="position:fixed;right:8px;bottom:6px;color:#ffffff55;font-size:10px;z-index:9999">v10.13.6</div>
+<div id="debugVersion" style="position:fixed;right:8px;bottom:6px;color:#ffffff55;font-size:10px;z-index:9999">v10.13.7</div>
 </body>
 </html>

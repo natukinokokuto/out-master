@@ -1,8 +1,8 @@
-const CACHE_NAME = "out-master-v10-13-6-recovery";
+const CACHE_NAME = "out-master-v10-13-7-recovery";
 const ASSETS = [
   "./",
-  "./index.html?v=10136",
-  "./manifest.json?v=10136",
+  "./index.html?v=10137",
+  "./manifest.json?v=10137",
   "./icon-192.png",
   "./icon-512.png",
   "./assets/menu-bg.jpg",
@@ -43,7 +43,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => caches.match(req).then((cached) => cached || caches.match("./index.html?v=10136")))
+        .catch(() => caches.match(req).then((cached) => cached || caches.match("./index.html?v=10137")))
     );
     return;
   }
