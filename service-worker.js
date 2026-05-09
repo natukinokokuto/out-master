@@ -1,4 +1,4 @@
-const CACHE_NAME = "out-master-v10-10-se";
+const CACHE_NAME = "out-master-v10-10-1-button-flick-fix";
 const ASSETS = [
   "./",
   "./index.html",
