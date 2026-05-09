@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#101014">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OUT MASTER">
-<link rel="manifest" href="manifest.json?v=10137">
+<link rel="manifest" href="manifest.json?v=10138">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>OUT MASTER v10.13.7</title>
-<!-- v10.13.7 bull hardfix: green bull and red bull both return BULL=50 -->
+<title>OUT MASTER v10.13.8</title>
+<!-- v10.13.8 bull hardfix: green bull and red bull both return BULL=50 -->
 <style>
 *{box-sizing:border-box}
 html,body{
@@ -363,7 +363,7 @@ svg{
   margin-top:4px;
 }
 
-/* v10.13.7 touch/settings recovery */
+/* v10.13.8 touch/settings recovery */
 #settingsScreen{
   overflow-y:auto;
   align-items:flex-start;
@@ -381,6 +381,38 @@ input[type=range], .audioSlider{
 }
 #board, #board *{
   touch-action:none;
+}
+
+.countdownOverlay{
+  position:fixed;
+  inset:0;
+  z-index:9998;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(8px);
+  opacity:0;
+  pointer-events:none;
+  transition:.18s ease;
+}
+.countdownOverlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+.countdownNumber{
+  font-size:clamp(72px,24vw,132px);
+  line-height:1;
+  font-weight:1000;
+  color:#ffb020;
+  text-shadow:0 0 34px rgba(255,176,32,.72);
+  transform:scale(.86);
+  animation:countPulse .72s ease-out;
+}
+@keyframes countPulse{
+  0%{transform:scale(.55);opacity:.2}
+  35%{transform:scale(1.1);opacity:1}
+  100%{transform:scale(.92);opacity:.86}
 }
 
 </style>
@@ -419,7 +451,7 @@ input[type=range], .audioSlider{
       <span class="menuSub">入力モード・サウンド設定</span>
     </button>
   </div>
-  <div class="versionTiny">v10.13.7</div>
+  <div class="versionTiny">v10.13.8</div>
 </div>
 
 
@@ -536,6 +568,10 @@ input[type=range], .audioSlider{
   </div>
 </div>
 
+<div class="countdownOverlay" id="countdownOverlay">
+  <div class="countdownNumber" id="countdownNumber">3</div>
+</div>
+
 <script>
 const nums = [20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
 const all = [];
@@ -546,7 +582,7 @@ for(let n=1;n<=20;n++){
 }
 all.push({name:"BULL",score:50,kind:"B"});
 
-const STORE_KEY = "outMasterBoardV10137";
+const STORE_KEY = "outMasterBoardV10138";
 let store = loadStore();
 
 let playing=false, practiceMode=false, current=0, displayRem=0, round=0, miss=0, startTime=0, timerId=null, answerRoutes=[];
@@ -887,21 +923,59 @@ function showPerfect(big,small){
   document.getElementById("perfectSmall").textContent=small;
   o.classList.remove("show"); void o.offsetWidth; o.classList.add("show");
 }
-function startTA(){practiceMode=false; startGame();}
-function startPractice(){practiceMode=true; startGame();}
-function startGame(){
+function startTA(){
+  practiceMode=false;
   startBgmIfNeeded();
   document.getElementById("titleScreen").classList.add("hide");
   document.getElementById("menuScreen").classList.add("hide");
+  document.getElementById("settingsScreen").classList.add("hide");
+  document.getElementById("resultCard").classList.add("hide");
+  runCountdown(()=>startGame(false));
+}
+function startPractice(){
+  practiceMode=true;
+  startGame(true);
+}
+function runCountdown(done){
+  const overlay=document.getElementById("countdownOverlay");
+  const number=document.getElementById("countdownNumber");
+  const steps=["3","2","1","START"];
+  let i=0;
+  overlay.classList.add("show");
+  const tick=()=>{
+    number.textContent=steps[i];
+    number.style.animation="none";
+    void number.offsetWidth;
+    number.style.animation="countPulse .72s ease-out";
+    i++;
+    if(i<steps.length){
+      setTimeout(tick, i===3 ? 760 : 1000);
+    }else{
+      setTimeout(()=>{
+        overlay.classList.remove("show");
+        done();
+      },520);
+    }
+  };
+  tick();
+}
+function startGame(isPractice){
+  if(typeof isPractice === "boolean") practiceMode=isPractice;
+  startBgmIfNeeded();
+  document.getElementById("titleScreen").classList.add("hide");
+  document.getElementById("menuScreen").classList.add("hide");
+  document.getElementById("settingsScreen").classList.add("hide");
   document.getElementById("resultCard").classList.add("hide");
   document.getElementById("boardScreen").classList.remove("hide");
   playing=!practiceMode; round=1; miss=0; bonusTime=0; selectedThrows=[];
   document.getElementById("miss").textContent=miss;
-  startTime=performance.now();
   clearInterval(timerId);
   if(!practiceMode){
+    startTime=performance.now();
+    document.getElementById("timer").textContent="0.00";
     timerId=setInterval(()=>document.getElementById("timer").textContent=((performance.now()-startTime)/1000).toFixed(2),50);
   }else{
+    startTime=0;
     document.getElementById("timer").textContent="FREE";
   }
   setQuestion();
@@ -913,10 +987,18 @@ function backToMenu(){
   setTimeout(()=>document.getElementById("menuScreen").classList.remove("hide"),220);
 }
 function showRanking(){
+  document.getElementById("titleScreen").classList.add("hide");
+  document.getElementById("settingsScreen").classList.add("hide");
+  document.getElementById("boardScreen").classList.add("hide");
+  document.getElementById("menuScreen").classList.remove("hide");
   const rows = store.ranking.length
-    ? store.ranking.map((r,i)=>`${i+1}. ${r.name} / ${Number(r.time).toFixed(2)}秒 / MISS ${r.miss}`).join("\\n")
+    ? store.ranking.map((r,i)=>`${i+1}. ${r.name} / ${Number(r.time).toFixed(2)}秒 / MISS ${r.miss}`).join("\n")
     : "まだ記録なし";
-  alert(rows);
+  document.getElementById("finalScore").textContent="RANKING";
+  const detail=document.getElementById("detail");
+  detail.style.whiteSpace="pre-line";
+  detail.textContent=rows;
+  document.getElementById("resultCard").classList.remove("hide");
 }
 function today(){
   const d=new Date();
@@ -943,7 +1025,7 @@ function addWedge(svg,r1,r2,a1,a2,cls,name){
   p.setAttribute("class","seg "+cls);
   p.onpointerdown=(e)=>boardPointerDown(e,name);
   p.onpointerup=(e)=>boardPointerUp(e,name);
-  p.onclick=(e)=>boardClickFallback(e,name);
+  if(!window.PointerEvent) p.onclick=(e)=>boardClickFallback(e,name);
   svg.appendChild(p);
 }
 function addCircle(svg,r,cls,name){
@@ -952,7 +1034,7 @@ function addCircle(svg,r,cls,name){
   c.setAttribute("class","seg "+cls);
   c.onpointerdown=(e)=>boardPointerDown(e,name);
   c.onpointerup=(e)=>boardPointerUp(e,name);
-  c.onclick=(e)=>boardClickFallback(e,name);
+  if(!window.PointerEvent) c.onclick=(e)=>boardClickFallback(e,name);
   svg.appendChild(c);
 }
 function drawBoard(){
@@ -1089,7 +1171,7 @@ if(!current)return;
     return;
   }
 
-  // v10.13.7: 0になったのに最後がマスターアウトじゃない場合は即ミス
+  // v10.13.8: 0になったのに最後がマスターアウトじゃない場合は即ミス
   if(displayRem===0 && !judgeSelectedRoute(selectedThrows)){
     updateScoreDisplay("bad");
     flash(false,`❌ マスターアウト失敗 ${selectedThrows.join(" → ")}`);
@@ -1139,6 +1221,7 @@ function finishGame(){
   const raw=(performance.now()-startTime)/1000;
   const final=Math.max(0,raw+(miss*5)-bonusTime);
   document.getElementById("finalScore").textContent=final.toFixed(2)+" 秒";
+  document.getElementById("detail").style.whiteSpace="normal";
   document.getElementById("detail").textContent=`実時間 ${raw.toFixed(2)}秒 + ミス${miss}個 × 5秒 - 王道ボーナス${bonusTime.toFixed(1)}秒`;
   document.getElementById("resultCard").classList.remove("hide");
   registerRanking(final,raw);
@@ -1161,7 +1244,7 @@ window.addEventListener("keyup",(e)=>{
 });
 
 if("serviceWorker" in navigator && location.protocol!=="file:"){
-  navigator.serviceWorker.register("./service-worker.js?v=10137").catch(()=>{});
+  navigator.serviceWorker.register("./service-worker.js?v=10138").catch(()=>{});
 }
 updateSoundText();
 applyAudioSettings();
@@ -1174,7 +1257,7 @@ drawBoard();
 
 
 
-<!-- VERSION: 10137 -->
+<!-- VERSION: 10138 -->
 
 <audio id="seButton" src="./assets/se/button.wav" preload="auto"></audio>
 <audio id="seSingle" src="./assets/se/single.wav" preload="auto"></audio>
@@ -1187,6 +1270,6 @@ drawBoard();
 <audio id="bgmAudio" src="./assets/bgm.mp3" preload="auto"></audio>
 
 
-<div id="debugVersion" style="position:fixed;right:8px;bottom:6px;color:#ffffff55;font-size:10px;z-index:9999">v10.13.7</div>
+<div id="debugVersion" style="position:fixed;right:8px;bottom:6px;color:#ffffff55;font-size:10px;z-index:9999">v10.13.8</div>
 </body>
 </html>
