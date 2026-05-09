@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="OUT MASTER">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>OUT MASTER v10.10.3</title>
+<title>OUT MASTER v10.11</title>
 <!-- v10.8.2 bull hardfix: green bull and red bull both return BULL=50 -->
 <style>
 *{box-sizing:border-box}
@@ -374,7 +374,7 @@ svg{
       <span class="menuSub">入力モード・サウンド設定</span>
     </button>
   </div>
-  <div class="versionTiny">v10.10.3</div>
+  <div class="versionTiny">v10.11</div>
 </div>
 
 
@@ -435,7 +435,7 @@ svg{
     <div class="card boardWrap">
       <svg id="board" viewBox="-120 -120 240 240" aria-label="dart board"></svg>
       <div class="inputGuide" id="inputGuide">CLASSIC: 盤面そのまま</div>
-      <div style="display:flex;align-items:center;gap:12px">
+      <div id="tdButtonWrap" style="display:flex;align-items:center;gap:12px">
 <button id="tripleBtn" class="noout" style="width:66px;height:66px;background:radial-gradient(circle at 30% 30%, #8b5cf6, #4c1d95 70%);border-color:#2e1065;font-size:20px">T</button>
 
 <button class="noout" onclick="answerNoOut()">上がれない</button>
@@ -475,7 +475,7 @@ for(let n=1;n<=20;n++){
 }
 all.push({name:"BULL",score:50,kind:"B"});
 
-const STORE_KEY = "outMasterBoardV10103";
+const STORE_KEY = "outMasterBoardV1011";
 let store = loadStore();
 
 let playing=false, practiceMode=false, current=0, displayRem=0, round=0, miss=0, startTime=0, timerId=null, answerRoutes=[];
@@ -484,6 +484,7 @@ let selectedThrows=[];
 
 let heldMode=null;
 let flickStart=null;
+let lastPointerAt=0;
 
 function updateHoldVisual(){
   const t=document.getElementById("tripleBtn");
@@ -542,10 +543,25 @@ function installHoldButtons(){
 
 function updateInputGuide(){
   const guide=document.getElementById("inputGuide");
+  const wrap=document.getElementById("tdButtonWrap");
+
+  if(wrap){
+    wrap.style.display = store.inputMode==="BUTTON" ? "flex" : "none";
+  }
+
   if(!guide)return;
-  if(store.inputMode==="CLASSIC") guide.textContent="CLASSIC: 盤面そのまま";
-  if(store.inputMode==="BUTTON") guide.textContent="BUTTON: T/Dを押しながら数字";
-  if(store.inputMode==="FLICK") guide.textContent="↑ T   /   TAP S   /   ↓ D";
+
+  if(store.inputMode==="CLASSIC"){
+    guide.textContent="CLASSIC: 盤面そのまま";
+  }
+
+  if(store.inputMode==="BUTTON"){
+    guide.textContent="BUTTON: T/Dを押しながら数字";
+  }
+
+  if(store.inputMode==="FLICK"){
+    guide.textContent="↑ T   /   TAP S   /   ↓ D";
+  }
 }
 
 function baseNumber(name){
@@ -566,6 +582,7 @@ function boardPointerDown(e,name){
 }
 
 function boardPointerUp(e,name){
+  lastPointerAt=Date.now();
   if(store.inputMode==="FLICK" && flickStart){
     const dy=e.clientY-flickStart.y;
     flickStart=null;
@@ -668,7 +685,8 @@ function playSE(type){
     double:"seDouble",
     bull:"seBull",
     perfect:"sePerfect",
-    miss:"seMiss"
+    miss:"seMiss",
+    good:"seGood"
   };
   const el=document.getElementById(map[type]);
   if(!el) return;
@@ -767,6 +785,7 @@ function addWedge(svg,r1,r2,a1,a2,cls,name){
   p.setAttribute("class","seg "+cls);
   p.onpointerdown=(e)=>boardPointerDown(e,name);
   p.onpointerup=(e)=>boardPointerUp(e,name);
+  p.onclick=(e)=>boardClickFallback(e,name);
   svg.appendChild(p);
 }
 function addCircle(svg,r,cls,name){
@@ -775,6 +794,7 @@ function addCircle(svg,r,cls,name){
   c.setAttribute("class","seg "+cls);
   c.onpointerdown=(e)=>boardPointerDown(e,name);
   c.onpointerup=(e)=>boardPointerUp(e,name);
+  c.onclick=(e)=>boardClickFallback(e,name);
   svg.appendChild(c);
 }
 function drawBoard(){
@@ -867,6 +887,24 @@ function calcRemaining(names){
   }
   return rem;
 }
+
+function boardClickFallback(e,name){
+  // PC用保険。pointerup直後のclickは二重入力防止で無視。
+  if(Date.now()-lastPointerAt < 180) return;
+
+  if(store.inputMode==="BUTTON"){
+    tap(applyMultiplier(name, heldMode || "S"));
+    return;
+  }
+
+  if(store.inputMode==="FLICK"){
+    tap(applyMultiplier(name,"S"));
+    return;
+  }
+
+  tap(name);
+}
+
 function tap(name){
 if(!current)return;
 
@@ -892,7 +930,7 @@ if(!current)return;
     return;
   }
 
-  // v10.10.3: 0になったのに最後がマスターアウトじゃない場合は即ミス
+  // v10.11: 0になったのに最後がマスターアウトじゃない場合は即ミス
   if(displayRem===0 && !judgeSelectedRoute(selectedThrows)){
     updateScoreDisplay("bad");
     flash(false,`❌ マスターアウト失敗 ${selectedThrows.join(" → ")}`);
@@ -953,8 +991,8 @@ function finishGame(){
 window.addEventListener("keydown",(e)=>{
   if(store.inputMode!=="BUTTON") return;
   const k=e.key.toLowerCase();
-  if(k==="t") modePress("T");
-  if(k==="d") modePress("D");
+  if(k==="t"){ e.preventDefault(); modePress("T"); }
+  if(k==="d"){ e.preventDefault(); modePress("D"); }
 });
 window.addEventListener("keyup",(e)=>{
   if(store.inputMode!=="BUTTON") return;
@@ -978,6 +1016,7 @@ drawBoard();
 <audio id="seBull" src="./assets/se/bull.wav" preload="auto"></audio>
 <audio id="sePerfect" src="./assets/se/perfect.wav" preload="auto"></audio>
 <audio id="seMiss" src="./assets/se/miss.wav" preload="auto"></audio>
+<audio id="seGood" src="./assets/se/perfect.wav" preload="auto"></audio>
 
 </body>
 </html>
