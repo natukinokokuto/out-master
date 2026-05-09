@@ -315,6 +315,13 @@ svg{
   .menuBtn{padding-left:72px}
   .menuIcon{left:18px}
 }
+
+.keyActive{
+  outline:3px solid #ffb020!important;
+  box-shadow:0 0 22px rgba(255,176,32,.55)!important;
+  transform:translateY(1px) scale(.97);
+}
+
 </style>
 </head>
 <body>
@@ -459,12 +466,22 @@ let bonusTime = 0;
 let selectedThrows=[];
 let heldMode=null;
 
+function updateTDButtonVisual(){
+  const t=document.getElementById("tripleBtn");
+  const d=document.getElementById("doubleBtn");
+  if(t)t.classList.toggle("keyActive", heldMode==="T");
+  if(d)d.classList.toggle("keyActive", heldMode==="D");
+}
+
 function modePress(mode){
   if(store.inputMode!=="BUTTON") return;
   heldMode=mode;
+  playSE("button");
+  updateTDButtonVisual();
 }
 function modeRelease(){
   heldMode=null;
+  updateTDButtonVisual();
 }
 
 function loadStore(){
@@ -533,6 +550,26 @@ function refreshModeUI(){
     explain.innerHTML=
     "タップ=S<br>上フリック=T<br>下フリック=D";
   }
+}
+
+
+function playSE(type){
+  if(!store.sound) return;
+  const map = {
+    button:"seButton",
+    single:"seSingle",
+    triple:"seTriple",
+    double:"seDouble",
+    bull:"seBull",
+    perfect:"sePerfect",
+    miss:"seMiss"
+  };
+  const el=document.getElementById(map[type]);
+  if(!el) return;
+  try{
+    el.currentTime=0;
+    el.play();
+  }catch(e){}
 }
 
 function toggleSound(){
@@ -737,6 +774,12 @@ function tap(name){
   }
 
   if(!current)return;
+
+  if(name==="BULL") playSE("bull");
+  else if(name.startsWith("T")) playSE("triple");
+  else if(name.startsWith("D")) playSE("double");
+  else playSE("single");
+
   selectedThrows.push(name);
   displayRem=calcRemaining(selectedThrows);
   if(displayRem<0){
@@ -767,7 +810,7 @@ function tap(name){
   flash(true,"入力: "+selectedThrows.join(" → "));
   if(judgeSelectedRoute(selectedThrows)){
     const popular=isPopularRoute(selectedThrows);
-    if(popular){bonusTime+=.5; showPerfect("PERFECT!!","王道ルートボーナス -0.5s!!")}
+    if(popular){bonusTime+=.5; showPerfect("PERFECT!!","王道ルートボーナス -0.5s!!"); playSE("perfect")}
     flash(true,`⭕ ${popular ? "PERFECT！" : "GOOD."} ${selectedThrows.join(" → ")}`);
     selectedThrows=[];
     setTimeout(()=>nextRound(true),560);
@@ -788,7 +831,7 @@ function flash(ok,msg){
   const s=document.getElementById("status");
   s.className="status "+(ok?"good":"bad");
   s.textContent=msg;
-  if(!ok)missSound();
+  if(!ok)playSE("miss");
 }
 function nextRound(ok){
   if(!ok)miss++;
@@ -807,11 +850,45 @@ function finishGame(){
   document.getElementById("resultCard").classList.remove("hide");
   registerRanking(final,raw);
 }
+
+// PCデバッグ用: BUTTONモード時だけキーボードT/D押しっぱなしで連動
+window.addEventListener("keydown", (e)=>{
+  if(store.inputMode!=="BUTTON") return;
+  if(e.repeat) return;
+  const k=e.key.toLowerCase();
+  if(k==="t"){
+    heldMode="T";
+    updateTDButtonVisual();
+  }
+  if(k==="d"){
+    heldMode="D";
+    updateTDButtonVisual();
+  }
+});
+
+window.addEventListener("keyup", (e)=>{
+  if(store.inputMode!=="BUTTON") return;
+  const k=e.key.toLowerCase();
+  if((k==="t" && heldMode==="T") || (k==="d" && heldMode==="D")){
+    heldMode=null;
+    updateTDButtonVisual();
+  }
+});
+
 if("serviceWorker" in navigator && location.protocol!=="file:"){
   navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
 }
 updateSoundText();
 drawBoard();
 </script>
+
+<audio id="seButton" src="./assets/se/button.wav" preload="auto"></audio>
+<audio id="seSingle" src="./assets/se/single.wav" preload="auto"></audio>
+<audio id="seTriple" src="./assets/se/triple.wav" preload="auto"></audio>
+<audio id="seDouble" src="./assets/se/double.wav" preload="auto"></audio>
+<audio id="seBull" src="./assets/se/bull.wav" preload="auto"></audio>
+<audio id="sePerfect" src="./assets/se/perfect.wav" preload="auto"></audio>
+<audio id="seMiss" src="./assets/se/miss.wav" preload="auto"></audio>
+
 </body>
 </html>
