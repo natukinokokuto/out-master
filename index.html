@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-title" content="OUT MASTER">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>OUT MASTER v10.13.3</title>
-<!-- v10.13.3 bull hardfix: green bull and red bull both return BULL=50 -->
+<title>OUT MASTER v10.13.4</title>
+<!-- v10.13.4 bull hardfix: green bull and red bull both return BULL=50 -->
 <style>
 *{box-sizing:border-box}
 html,body{
@@ -399,7 +399,7 @@ svg{
       <span class="menuSub">入力モード・サウンド設定</span>
     </button>
   </div>
-  <div class="versionTiny">v10.13.3</div>
+  <div class="versionTiny">v10.13.4</div>
 </div>
 
 
@@ -526,7 +526,7 @@ for(let n=1;n<=20;n++){
 }
 all.push({name:"BULL",score:50,kind:"B"});
 
-const STORE_KEY = "outMasterBoardV10133";
+const STORE_KEY = "outMasterBoardV10134";
 let store = loadStore();
 
 let playing=false, practiceMode=false, current=0, displayRem=0, round=0, miss=0, startTime=0, timerId=null, answerRoutes=[];
@@ -1025,7 +1025,7 @@ if(!current)return;
     return;
   }
 
-  // v10.13.3: 0になったのに最後がマスターアウトじゃない場合は即ミス
+  // v10.13.4: 0になったのに最後がマスターアウトじゃない場合は即ミス
   if(displayRem===0 && !judgeSelectedRoute(selectedThrows)){
     updateScoreDisplay("bad");
     flash(false,`❌ マスターアウト失敗 ${selectedThrows.join(" → ")}`);
@@ -1097,7 +1097,7 @@ window.addEventListener("keyup",(e)=>{
 });
 
 if("serviceWorker" in navigator && location.protocol!=="file:"){
-  navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+  navigator.serviceWorker.register("./service-worker.js?v=10134").catch(()=>{});
 }
 updateSoundText();
 installHoldButtons();
@@ -1107,7 +1107,7 @@ drawBoard();
 
 
 
-<!-- VERSION: 10133 -->
+<!-- VERSION: 10134 -->
 
 <audio id="seButton" src="./assets/se/button.wav" preload="auto"></audio>
 <audio id="seSingle" src="./assets/se/single.wav" preload="auto"></audio>
@@ -1119,5 +1119,7 @@ drawBoard();
 <audio id="seGood" src="./assets/se/good.mp3" preload="auto"></audio>
 <audio id="bgmAudio" src="./assets/bgm.mp3" preload="auto"></audio>
 
+
+<div id="debugVersion" style="position:fixed;right:8px;bottom:6px;color:#ffffff55;font-size:10px;z-index:9999">v10.13.4</div>
 </body>
 </html>

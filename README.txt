@@ -1,7 +1,7 @@
-OUT MASTER v10.13.2 audiofix版
+OUT MASTER v10.13.4 PWA force update版
 修正:
-- GOOD音をgood.mp3として確実に再生
-- PERFECT音をperfect.mp3として確実に再生
-- BGM再生開始処理を修正
-- BGMフェードループ維持
-更新確認: ?ver=10132
+- Service Worker 強制更新
+- 古いキャッシュ自動削除
+- manifest cache bust
+- start_url更新
+更新確認: ?ver=10134
